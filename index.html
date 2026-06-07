@@ -14,37 +14,37 @@
     min-height: 100vh;
     margin: 0;
     font-family: 'Georgia', serif;
-    color: #c8c8d8;
+    color: ##a8a8a8;
   }
   h1 {
     font-size: 1.5rem;
     letter-spacing: 0.15em;
-    color: #9090b0;
+    color: #a8a8a8;
     margin-bottom: 0.2rem;
     text-transform: uppercase;
   }
   p.sub {
     font-size: 1.1rem;
-    color: #505068;
+    color: #a8a8a8;
     margin: 0 0 1.2rem 0;
     letter-spacing: 0.08em;
   }
   svg { overflow: visible; }
   .label {
     font-size: 0.9rem;
-    fill: #606080;
+    fill: #a8a8a8;
     letter-spacing: 0.06em;
     text-anchor: middle;
   }
   .stat {
     font-size: 0.9rem;
-    fill: #7070a0;
+    fill: #a8a8a8;
     font-family: 'Courier New', monospace;
   }
   #readout {
     margin-top: 1rem;
-    font-size: 1.1rem;
-    color: #484860;
+    font-size: 0.9rem;
+    color: #a8a8a8;
     font-family: 'Courier New', monospace;
     text-align: center;
     line-height: 1.7;
@@ -97,6 +97,9 @@
     <line id="earth-spin" x1="0" y1="0" x2="0" y2="-9"
           stroke="#6a9fd8" stroke-width="1.2" opacity="0.6"/>
   </g>
+
+
+  
 
   <!-- legend -->
   <text x="18" y="480" class="stat">σ(Mercury) = +1  counterclockwise</text>
@@ -192,6 +195,9 @@ function frame() {
      rotate(${spinE})`
   );
 
+    <p class="sub" style="text-align:center;">This is a spin-direction and phase-synchronization diagram, not an orbital trajectory model. Orbital radii are not to scale and paths are circular by construction.</p>
+
+
   // Readout (every 30 frames to avoid flicker)
   if (t % 30 === 0) {
     const days = (t * k).toFixed(1);
@@ -212,8 +218,6 @@ requestAnimationFrame(frame);
 <div id="readout">
   initializing...
 </div>
-
-  <p class="sub" style="text-align:center;">This is a spin-direction and phase-synchronization diagram, not an orbital trajectory model. Orbital radii are not to scale and paths are circular by construction.</p>
 
   
   
