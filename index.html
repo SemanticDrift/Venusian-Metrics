@@ -1,175 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Venusian Resonance System Engine — Stratified Execution Baseline</title>
-
 <script>
-window.MathJax = {
-  tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$']]
-  }
+const mu = 13/8;
+
+const sigma = {
+  inner: 1,
+  middle: -1,
+  outer: 1
 };
-</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-
-<style>
-body {
-  margin: 0;
-  background: #0b0f19;
-  color: #e2e8f0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-}
-
-#canvas {
-  width: 600px;
-  height: 600px;
-  background: #131a2c;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-}
-
-#panel {
-  width: 600px;
-  margin-top: 12px;
-  padding: 16px;
-  background: #131a2c;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.tier-tag {
-  color: #38bdf8;
-  font-weight: bold;
-}
-</style>
-</head>
-
-<body>
-
-<svg id="canvas" viewBox="0 0 500 500">
-  <line x1="250" y1="0" x2="250" y2="500" stroke="#1e293b" stroke-width="1"/>
-  <line x1="0" y1="250" x2="500" y2="250" stroke="#1e293b" stroke-width="1"/>
-
-  <circle cx="250" cy="250" r="80" fill="none" stroke="#1e293b" stroke-width="1"/>
-  <circle cx="250" cy="250" r="140" fill="none" stroke="#1e293b" stroke-width="1"/>
-  <circle cx="250" cy="250" r="200" fill="none" stroke="#1e293b" stroke-width="1"/>
-
-  <circle cx="250" cy="250" r="6" fill="#e2e8f0"/>
-
-  <g id="inner">
-    <circle r="6" fill="#38bdf8"/>
-    <line x1="0" y1="0" x2="0" y2="-12" stroke="#38bdf8" stroke-width="1.5"/>
-  </g>
-
-  <g id="middle">
-    <circle r="8" fill="#f97316"/>
-    <line x1="0" y1="0" x2="0" y2="-16" stroke="#f97316" stroke-width="1.5"/>
-  </g>
-
-  <g id="outer">
-    <circle r="6" fill="#22c55e"/>
-    <line x1="0" y1="0" x2="0" y2="-12" stroke="#22c55e" stroke-width="1.5"/>
-  </g>
-</svg>
-
-<div id="panel">
-  <div><span class="tier-tag">Λ⁰ Foundational:</span> $\psi = [1.0,\; 13/8,\; 1/6,\; 48]$, $\sigma = [+1,\,-1,\,+1]$</div>
-  <div><span class="tier-tag">Λ¹ Constructive:</span> $S = 8/5 = 1.6$, $\Phi = 10$</div>
-  <div><span class="tier-tag">Λ² Relational:</span> $\sum V_{\Delta} = 2 + (-2) = 0$ (Absolute Shear Closure)</div>
-  <div><span class="tier-tag">Λ³ Operational:</span> Deterministic Frame Index $t$: <span id="t" style="color: #34d399; font-weight: bold;">0</span></div>
-</div>
-
-<script>
-/* ========================================================================
-   Λ⁰ TIER: FOUNDATIONAL CONSTRAINTS (IMMUTABLE VALUE VECTOR)
-   ======================================================================== */
-const psi1 = 1.0;
-const mu = 13/8;  // Rational frequency parameter
-const lambda = 1/6;
-
-const sigma_inner = 1;
-const sigma_middle = -1; // Negative polarity forced by rolling interface contract
-const sigma_outer = 1;
-
-/* ========================================================================
-   Λ¹ TIER: CONSTRUCTIVE AXIOMS (DERIVED INVARIANT RELATIONSHIPS)
-   ======================================================================== */
-const S = 1 / ((1 / (psi1 * (1 / mu))) - (1 / psi1)); // Evaluates exactly to 1.6 (8/5)
-const Phi = (8 / S) * 2;                             // Evaluates exactly to 10
 
 const P_outer = 365.25625;
 const P_inner = P_outer / mu;
 const P_middle = (P_inner + P_outer) / 2;
 
-const BASE = 8 * 365.25625;
-const Tseg = BASE / Phi;
-const Pspin = Tseg * (1 - lambda);
-
-/* Execution Layout Constants */
 const C = 250;
 const R = { inner: 80, middle: 140, outer: 200 };
 
 let t = 0;
 
-/* ========================================================================
-   Λ³ TIER: GLOBAL PROPERTIES & KINEMATIC AFFINE TRANSFORMATION LOOP
-   ======================================================================== */
 function frame() {
   t++;
 
-  // Visual frame-rate embedding constant (strictly decoupled from Λ⁰ physics)
-  const k = 0.2; 
+  const k = 0.2;
 
-  // Direct, closed-form coordinates mapping from independent variable t
-  const theta_i = (360 / P_inner) * (k * t);
-  const theta_m = (360 / P_middle) * (k * t);
-  const theta_o = (360 / P_outer) * (k * t);
-
-  const theta_i_sp = sigma_inner * (360 / 60) * (k * t);
-  const theta_m_sp = sigma_middle * (360 / Pspin) * (k * t);
-  const theta_o_sp = sigma_outer * (360 / 60) * (k * t);
+  // PURE PHASE MAP (no reinterpretation)
+  const θi = (360 / P_inner) * (k * t);
+  const θm = (360 / P_middle) * (k * t);
+  const θo = (360 / P_outer) * (k * t);
 
   const inner = document.getElementById("inner");
   const middle = document.getElementById("middle");
   const outer = document.getElementById("outer");
 
-  // Commute absolute positions directly into spatial matrix attributes
   inner.setAttribute("transform",
-    `translate(${C + R.inner * Math.sin(theta_i * Math.PI / 180)},
-               ${C - R.inner * Math.cos(theta_i * Math.PI / 180)})
-     rotate(${theta_i_sp})`
+    `translate(${C + R.inner * Math.sin(θi * Math.PI / 180)},
+               ${C - R.inner * Math.cos(θi * Math.PI / 180)})`
   );
 
   middle.setAttribute("transform",
-    `translate(${C + R.middle * Math.sin(theta_m * Math.PI / 180)},
-               ${C - R.middle * Math.cos(theta_m * Math.PI / 180)})
-     rotate(${theta_m_sp})`
+    `translate(${C + R.middle * Math.sin(θm * Math.PI / 180)},
+               ${C - R.middle * Math.cos(θm * Math.PI / 180)})
+     rotate(${sigma.middle * θm})`
   );
 
   outer.setAttribute("transform",
-    `translate(${C + R.outer * Math.sin(theta_o * Math.PI / 180)},
-               ${C - R.outer * Math.cos(theta_o * Math.PI / 180)})
-     rotate(${theta_o_sp})`
+    `translate(${C + R.outer * Math.sin(θo * Math.PI / 180)},
+               ${C - R.outer * Math.cos(θo * Math.PI / 180)})`
   );
-
-  document.getElementById("t").textContent = t;
 
   requestAnimationFrame(frame);
 }
 
-// Initiate deterministic frame execution
 requestAnimationFrame(frame);
 </script>
-
-</body>
-</html>
