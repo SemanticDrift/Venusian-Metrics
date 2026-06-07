@@ -1,53 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venusian Resonance System</title>
+<style>
+  body {
+    background: #0a0a0f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Georgia', serif;
+    color: #c8c8d8;
+  }
+  h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    color: #9090b0;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+  }
+  p.sub {
+    font-size: 0.78rem;
+    color: #505068;
+    margin: 0 0 1.2rem 0;
+    letter-spacing: 0.08em;
+  }
+  svg { overflow: visible; }
+  .label {
+    font-size: 0.7rem;
+    fill: #606080;
+    letter-spacing: 0.06em;
+    text-anchor: middle;
+  }
+  .stat {
+    font-size: 0.68rem;
+    fill: #484860;
+    font-family: 'Courier New', monospace;
+  }
+  #readout {
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    color: #484860;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<h1>Venusian Resonance System</h1>
+<p class="sub">Retrograde Torque and Phase Closure &nbsp;|&nbsp; Annex VEN</p>
+
+<svg id="scene" width="520" height="520" viewBox="0 0 520 520">
+
+  <!-- orbital rails -->
+  <circle cx="260" cy="260" r="80"  fill="none" stroke="#1a1a2e" stroke-width="1"/>
+  <circle cx="260" cy="260" r="140" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+  <circle cx="260" cy="260" r="210" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+
+  <!-- Sun -->
+  <circle cx="260" cy="260" r="10" fill="#fffbe6" opacity="0.9"/>
+  <circle cx="260" cy="260" r="16" fill="none" stroke="#fffbe6" stroke-width="0.4" opacity="0.3"/>
+  <text x="260" y="284" class="label">Sun</text>
+
+  <!-- orbit labels -->
+  <text x="260" y="174" class="label">Mercury</text>
+  <text x="260" y="114" class="label">Venus</text>
+  <text x="260" y="44"  class="label">Earth</text>
+
+  <!-- Mercury -->
+  <g id="mercury">
+    <circle r="4" fill="#a09080"/>
+    <!-- spin indicator line -->
+    <line id="merc-spin" x1="0" y1="0" x2="0" y2="-6"
+          stroke="#a09080" stroke-width="1" opacity="0.6"/>
+  </g>
+
+  <!-- Venus -->
+  <g id="venus">
+    <circle r="7" fill="#e8c88a"/>
+    <!-- retrograde spin indicator -->
+    <line id="ven-spin" x1="0" y1="0" x2="0" y2="-9"
+          stroke="#e8c88a" stroke-width="1.2" opacity="0.8"/>
+    <!-- atmosphere halo -->
+    <circle r="11" fill="none" stroke="#e8c88a" stroke-width="0.6" opacity="0.25"/>
+  </g>
+
+  <!-- Earth -->
+  <g id="earth">
+    <circle r="7" fill="#6a9fd8"/>
+    <line id="earth-spin" x1="0" y1="0" x2="0" y2="-9"
+          stroke="#6a9fd8" stroke-width="1.2" opacity="0.6"/>
+  </g>
+
+  <!-- legend -->
+  <text x="18" y="480" class="stat">σ(Mercury) = +1  counterclockwise</text>
+  <text x="18" y="496" class="stat">σ(Venus)   = −1  retrograde idler</text>
+  <text x="18" y="512" class="stat">σ(Earth)   = +1  counterclockwise</text>
+
+</svg>
+
+<div id="readout">
+  initializing...
+</div>
+
 <script>
-const mu = 13/8;
+// ── AXIOMATIC PARAMETERS (from paper, Section 1-5) ───────────────────────────
 
-const sigma = {
-  inner: 1,
-  middle: -1,
-  outer: 1
-};
+const mu   = 13 / 8;          // Metonic frequency ratio, Section 1
+const lambda = 1 / 6;         // hexagonal closure limit, Section 1
 
-const P_outer = 365.25625;
-const P_inner = P_outer / mu;
-const P_middle = (P_inner + P_outer) / 2;
+// Discrete sign space (SPECIFICATION §2.2)
+const sigma = { mercury: +1, venus: -1, earth: +1 };
 
-const C = 250;
-const R = { inner: 80, middle: 140, outer: 200 };
+// Orbital periods (Earth baseline = 365.25625 days, Julian year, Section 5)
+const P_earth   = 365.25625;                // Earth baseline, Section 1
+const P_venus   = P_earth * (8 / 13);      // = 224.77 days, Metonic ratio Section 1
+const P_mercury = 87.969;                  // observed, inner boundary node
 
-let t = 0;
+// Sidereal spin periods (from paper derivations)
+const P_spin_venus   = 243.504;            // derived Section 5
+const P_spin_earth   = 1.0;               // 1 Earth day
+const P_spin_mercury = 58.646;            // observed 3:2 spin-orbit resonance
+
+// Atmospheric super-rotation (derived Section 6)
+const P_atmo_venus = 4.058;               // days
+
+// Layout
+const CX = 260, CY = 260;
+const R  = { mercury: 80, venus: 140, earth: 210 };
+
+// Time
+let t = 0;                                // days elapsed (scaled)
+const k = 0.18;                           // visual speed scalar (display only)
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+
+function toRad(deg) { return deg * Math.PI / 180; }
+
+// Closed-form SE(2) position: no integration, no accumulated state (SPEC §6)
+function orbitXY(period, t) {
+  const theta = (360 / period) * k * t;
+  return { theta, x: Math.sin(toRad(theta)), y: -Math.cos(toRad(theta)) };
+}
+
+function spinAngle(period, sign, t) {
+  return sign * (360 / period) * k * t;
+}
+
+// ── ELEMENTS ─────────────────────────────────────────────────────────────────
+
+const elMerc  = document.getElementById("mercury");
+const elVen   = document.getElementById("venus");
+const elEarth = document.getElementById("earth");
+const elVenSpin  = document.getElementById("ven-spin");
+const elMercSpin = document.getElementById("merc-spin");
+const elEarthSpin= document.getElementById("earth-spin");
+const readout = document.getElementById("readout");
+
+// ── FRAME ────────────────────────────────────────────────────────────────────
 
 function frame() {
   t++;
 
-  const k = 0.2;
+  // Orbital positions (counterclockwise for all — orbit direction is shared)
+  const merc  = orbitXY(P_mercury, t);
+  const ven   = orbitXY(P_venus,   t);
+  const earth = orbitXY(P_earth,   t);
 
-  // PURE PHASE MAP (no reinterpretation)
-  const θi = (360 / P_inner) * (k * t);
-  const θm = (360 / P_middle) * (k * t);
-  const θo = (360 / P_outer) * (k * t);
+  // Axial spin angles (sign encodes direction)
+  const spinM = spinAngle(P_spin_mercury, sigma.mercury, t);
+  const spinV = spinAngle(P_spin_venus,   sigma.venus,   t);  // retrograde
+  const spinE = spinAngle(P_spin_earth,   sigma.earth,   t);
 
-  const inner = document.getElementById("inner");
-  const middle = document.getElementById("middle");
-  const outer = document.getElementById("outer");
-
-  inner.setAttribute("transform",
-    `translate(${C + R.inner * Math.sin(θi * Math.PI / 180)},
-               ${C - R.inner * Math.cos(θi * Math.PI / 180)})`
+  // SE(2): translate (orbit) then rotate (spin) — SPEC §5.1
+  elMerc.setAttribute("transform",
+    `translate(${CX + R.mercury * merc.x}, ${CY + R.mercury * merc.y})
+     rotate(${spinM})`
+  );
+  elVen.setAttribute("transform",
+    `translate(${CX + R.venus * ven.x}, ${CY + R.venus * ven.y})
+     rotate(${spinV})`
+  );
+  elEarth.setAttribute("transform",
+    `translate(${CX + R.earth * earth.x}, ${CY + R.earth * earth.y})
+     rotate(${spinE})`
   );
 
-  middle.setAttribute("transform",
-    `translate(${C + R.middle * Math.sin(θm * Math.PI / 180)},
-               ${C - R.middle * Math.cos(θm * Math.PI / 180)})
-     rotate(${sigma.middle * θm})`
-  );
-
-  outer.setAttribute("transform",
-    `translate(${C + R.outer * Math.sin(θo * Math.PI / 180)},
-               ${C - R.outer * Math.cos(θo * Math.PI / 180)})`
-  );
+  // Readout (every 30 frames to avoid flicker)
+  if (t % 30 === 0) {
+    const days = (t * k).toFixed(1);
+    readout.innerHTML =
+      `Elapsed (scaled): ${days} days &nbsp;|&nbsp; ` +
+      `Venus orbit: ${P_venus.toFixed(2)} d &nbsp;|&nbsp; ` +
+      `Venus spin: ${P_spin_venus} d (retrograde)<br>` +
+      `Metonic ratio μ = 13/8 &nbsp;|&nbsp; ` +
+      `Closure limit λ = 1/6 &nbsp;|&nbsp; ` +
+      `Atmo cycle: ${P_atmo_venus} d`;
+  }
 
   requestAnimationFrame(frame);
 }
 
 requestAnimationFrame(frame);
 </script>
+</body>
+</html>
