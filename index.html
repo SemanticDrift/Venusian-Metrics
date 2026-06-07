@@ -14,40 +14,49 @@
     min-height: 100vh;
     margin: 0;
     font-family: 'Georgia', serif;
-    color: ##a8a8a8;
+    color: #c8c8d8;
   }
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     letter-spacing: 0.15em;
-    color: #a8a8a8;
+    color: #b0b0c8;
     margin-bottom: 0.2rem;
     text-transform: uppercase;
   }
   p.sub {
-    font-size: 1.1rem;
-    color: #a8a8a8;
+    font-size: 0.95rem;
+    color: #8080a0;
     margin: 0 0 1.2rem 0;
     letter-spacing: 0.08em;
+    text-align: center;
   }
   svg { overflow: visible; }
   .label {
-    font-size: 0.9rem;
-    fill: #a8a8a8;
+    font-size: 0.85rem;
+    fill: #8080a0;
     letter-spacing: 0.06em;
     text-anchor: middle;
   }
   .stat {
-    font-size: 0.9rem;
-    fill: #a8a8a8;
+    font-size: 0.82rem;
+    fill: #8080a0;
     font-family: 'Courier New', monospace;
   }
   #readout {
     margin-top: 1rem;
-    font-size: 0.9rem;
-    color: #a8a8a8;
+    font-size: 0.88rem;
+    color: #8080a0;
     font-family: 'Courier New', monospace;
     text-align: center;
     line-height: 1.7;
+  }
+  p.note {
+    font-size: 0.82rem;
+    color: #8080a0;
+    margin: 0.8rem 0 0 0;
+    text-align: center;
+    font-style: italic;
+    letter-spacing: 0.04em;
   }
 </style>
 </head>
@@ -64,9 +73,9 @@
   <circle cx="260" cy="260" r="210" fill="none" stroke="#1a1a2e" stroke-width="1"/>
 
   <!-- Sun -->
-  <circle cx="260" cy="260" r="10" fill="#fffbe6" opacity="0.9"/>
-  <circle cx="260" cy="260" r="16" fill="none" stroke="#fffbe6" stroke-width="0.4" opacity="0.3"/>
-  <text x="260" y="284" class="label">Sun</text>
+  <circle cx="260" cy="260" r="13" fill="#fffbe6" opacity="0.9"/>
+  <circle cx="260" cy="260" r="20" fill="none" stroke="#fffbe6" stroke-width="0.4" opacity="0.3"/>
+  <text x="260" y="288" class="label">Sun</text>
 
   <!-- orbit labels -->
   <text x="260" y="174" class="label">Mercury</text>
@@ -75,36 +84,30 @@
 
   <!-- Mercury -->
   <g id="mercury">
-    <circle r="4" fill="#a09080"/>
-    <!-- spin indicator line -->
-    <line id="merc-spin" x1="0" y1="0" x2="0" y2="-6"
+    <circle r="6" fill="#a09080"/>
+    <line id="merc-spin" x1="0" y1="0" x2="0" y2="-9"
           stroke="#a09080" stroke-width="1" opacity="0.6"/>
   </g>
 
   <!-- Venus -->
   <g id="venus">
-    <circle r="7" fill="#e8c88a"/>
-    <!-- retrograde spin indicator -->
-    <line id="ven-spin" x1="0" y1="0" x2="0" y2="-9"
-          stroke="#e8c88a" stroke-width="1.2" opacity="0.8"/>
-    <!-- atmosphere halo -->
-    <circle r="11" fill="none" stroke="#e8c88a" stroke-width="0.6" opacity="0.25"/>
+    <circle r="10" fill="#e8c88a"/>
+    <line id="ven-spin" x1="0" y1="0" x2="0" y2="-13"
+          stroke="#e8c88a" stroke-width="1.4" opacity="0.8"/>
+    <circle r="15" fill="none" stroke="#e8c88a" stroke-width="0.6" opacity="0.25"/>
   </g>
 
   <!-- Earth -->
   <g id="earth">
-    <circle r="7" fill="#6a9fd8"/>
-    <line id="earth-spin" x1="0" y1="0" x2="0" y2="-9"
-          stroke="#6a9fd8" stroke-width="1.2" opacity="0.6"/>
+    <circle r="10" fill="#6a9fd8"/>
+    <line id="earth-spin" x1="0" y1="0" x2="0" y2="-13"
+          stroke="#6a9fd8" stroke-width="1.4" opacity="0.6"/>
   </g>
 
-
-  
-
   <!-- legend -->
-  <text x="18" y="480" class="stat">σ(Mercury) = +1  counterclockwise</text>
-  <text x="18" y="496" class="stat">σ(Venus)   = −1  retrograde idler</text>
-  <text x="18" y="512" class="stat">σ(Earth)   = +1  counterclockwise</text>
+  <text x="18" y="480" class="stat">&#963;(Mercury) = +1  counterclockwise</text>
+  <text x="18" y="496" class="stat">&#963;(Venus)   = &#8722;1  retrograde idler</text>
+  <text x="18" y="512" class="stat">&#963;(Earth)   = +1  counterclockwise</text>
 
 </svg>
 
@@ -112,41 +115,42 @@
   initializing...
 </div>
 
+<p class="note">Spin-direction and phase-synchronization diagram. Not an orbital trajectory model.</p>
+
 <script>
 // ── AXIOMATIC PARAMETERS (from paper, Section 1-5) ───────────────────────────
 
-const mu   = 13 / 8;          // Metonic frequency ratio, Section 1
+const mu     = 13 / 8;        // Metonic frequency ratio, Section 1
 const lambda = 1 / 6;         // hexagonal closure limit, Section 1
 
 // Discrete sign space (SPECIFICATION §2.2)
 const sigma = { mercury: +1, venus: -1, earth: +1 };
 
 // Orbital periods (Earth baseline = 365.25625 days, Julian year, Section 5)
-const P_earth   = 365.25625;                // Earth baseline, Section 1
-const P_venus   = P_earth * (8 / 13);      // = 224.77 days, Metonic ratio Section 1
-const P_mercury = 87.969;                  // observed, inner boundary node
+const P_earth   = 365.25625;           // Earth baseline, Section 1
+const P_venus   = P_earth * (8 / 13); // 224.77 days, Metonic ratio Section 1
+const P_mercury = 87.969;             // observed, inner boundary node
 
 // Sidereal spin periods (from paper derivations)
-const P_spin_venus   = 243.504;            // derived Section 5
-const P_spin_earth   = 1.0;               // 1 Earth day
-const P_spin_mercury = 58.646;            // observed 3:2 spin-orbit resonance
+const P_spin_venus   = 243.504;       // derived Section 5
+const P_spin_earth   = 1.0;          // 1 Earth day
+const P_spin_mercury = 58.646;       // observed 3:2 spin-orbit resonance
 
 // Atmospheric super-rotation (derived Section 6)
-const P_atmo_venus = 4.058;               // days
+const P_atmo_venus = 4.058;          // days
 
 // Layout
 const CX = 260, CY = 260;
 const R  = { mercury: 80, venus: 140, earth: 210 };
 
 // Time
-let t = 0;                                // days elapsed (scaled)
-const k = 0.18;                           // visual speed scalar (display only)
+let t = 0;
+const k = 0.18;
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
 function toRad(deg) { return deg * Math.PI / 180; }
 
-// Closed-form SE(2) position: no integration, no accumulated state (SPEC §6)
 function orbitXY(period, t) {
   const theta = (360 / period) * k * t;
   return { theta, x: Math.sin(toRad(theta)), y: -Math.cos(toRad(theta)) };
@@ -161,9 +165,6 @@ function spinAngle(period, sign, t) {
 const elMerc  = document.getElementById("mercury");
 const elVen   = document.getElementById("venus");
 const elEarth = document.getElementById("earth");
-const elVenSpin  = document.getElementById("ven-spin");
-const elMercSpin = document.getElementById("merc-spin");
-const elEarthSpin= document.getElementById("earth-spin");
 const readout = document.getElementById("readout");
 
 // ── FRAME ────────────────────────────────────────────────────────────────────
@@ -171,42 +172,32 @@ const readout = document.getElementById("readout");
 function frame() {
   t++;
 
-  // Orbital positions (counterclockwise for all — orbit direction is shared)
   const merc  = orbitXY(P_mercury, t);
   const ven   = orbitXY(P_venus,   t);
   const earth = orbitXY(P_earth,   t);
 
-  // Axial spin angles (sign encodes direction)
   const spinM = spinAngle(P_spin_mercury, sigma.mercury, t);
-  const spinV = spinAngle(P_spin_venus,   sigma.venus,   t);  // retrograde
+  const spinV = spinAngle(P_spin_venus,   sigma.venus,   t);
   const spinE = spinAngle(P_spin_earth,   sigma.earth,   t);
 
-  // SE(2): translate (orbit) then rotate (spin) — SPEC §5.1
   elMerc.setAttribute("transform",
-    `translate(${CX + R.mercury * merc.x}, ${CY + R.mercury * merc.y})
-     rotate(${spinM})`
+    `translate(${CX + R.mercury * merc.x}, ${CY + R.mercury * merc.y}) rotate(${spinM})`
   );
   elVen.setAttribute("transform",
-    `translate(${CX + R.venus * ven.x}, ${CY + R.venus * ven.y})
-     rotate(${spinV})`
+    `translate(${CX + R.venus * ven.x}, ${CY + R.venus * ven.y}) rotate(${spinV})`
   );
   elEarth.setAttribute("transform",
-    `translate(${CX + R.earth * earth.x}, ${CY + R.earth * earth.y})
-     rotate(${spinE})`
+    `translate(${CX + R.earth * earth.x}, ${CY + R.earth * earth.y}) rotate(${spinE})`
   );
 
-    <p class="sub" style="text-align:center;">This is a spin-direction and phase-synchronization diagram, not an orbital trajectory model. Orbital radii are not to scale and paths are circular by construction.</p>
-
-
-  // Readout (every 30 frames to avoid flicker)
   if (t % 30 === 0) {
     const days = (t * k).toFixed(1);
     readout.innerHTML =
       `Elapsed (scaled): ${days} days &nbsp;|&nbsp; ` +
       `Venus orbit: ${P_venus.toFixed(2)} d &nbsp;|&nbsp; ` +
       `Venus spin: ${P_spin_venus} d (retrograde)<br>` +
-      `Metonic ratio μ = 13/8 &nbsp;|&nbsp; ` +
-      `Closure limit λ = 1/6 &nbsp;|&nbsp; ` +
+      `Metonic ratio &#956; = 13/8 &nbsp;|&nbsp; ` +
+      `Closure limit &#955; = 1/6 &nbsp;|&nbsp; ` +
       `Atmo cycle: ${P_atmo_venus} d`;
   }
 
@@ -215,11 +206,5 @@ function frame() {
 
 requestAnimationFrame(frame);
 </script>
-<div id="readout">
-  initializing...
-</div>
-
-  
-  
 </body>
 </html>
