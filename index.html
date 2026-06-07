@@ -1,131 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Venusian Resonance Kinematic Engine</title>
-    <style>
-        body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-        #canvas-container {
-            position: relative;
-            width: 600px;
-            height: 600px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        svg {
-            width: 100%;
-            height: 100%;
-        }
-        #telemetry-panel {
-            margin-top: 15px;
-            width: 580px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 10px;
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-            font-size: 11px;
-            line-height: 1.5;
-        }
-        .grid-header {
-            color: #58a6ff;
-            font-weight: bold;
-            border-bottom: 1px solid #30363d;
-            padding-bottom: 4px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 4px 20px;
-        }
-        .metric-item span {
-            color: #8b949e;
-        }
-        .metric-value {
-            color: #ff7b72;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8" />
+<title>Venusian Resonance System Engine — Stratified Execution Baseline</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$']]
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+body {
+  margin: 0;
+  background: #0b0f19;
+  color: #e2e8f0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#canvas {
+  width: 600px;
+  height: 600px;
+  background: #131a2c;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+}
+
+#panel {
+  width: 600px;
+  margin-top: 12px;
+  padding: 16px;
+  background: #131a2c;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tier-tag {
+  color: #38bdf8;
+  font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
-<div id="canvas-container">
-    <svg id="engine-render" viewBox="0 0 500 500">
-        <line x1="250" y1="0" x2="250" y2="500" stroke="#21262d" stroke-width="1" />
-        <line x1="0" y1="250" x2="500" y2="250" stroke="#21262d" stroke-width="1" />
-        
-        <g id="sector-overlay" stroke="#21262d" stroke-width="0.5" stroke-dasharray="2,4"></g>
+<svg id="canvas" viewBox="0 0 500 500">
+  <line x1="250" y1="0" x2="250" y2="500" stroke="#1e293b" stroke-width="1"/>
+  <line x1="0" y1="250" x2="500" y2="250" stroke="#1e293b" stroke-width="1"/>
 
-        <circle cx="250" cy="250" r="70" fill="none" stroke="#30363d" stroke-width="1" />
-        <circle cx="250" cy="250" r="130" fill="none" stroke="#30363d" stroke-width="1" />
-        <circle cx="250" cy="250" r="180" fill="none" stroke="#30363d" stroke-width="1" />
+  <circle cx="250" cy="250" r="80" fill="none" stroke="#1e293b" stroke-width="1"/>
+  <circle cx="250" cy="250" r="140" fill="none" stroke="#1e293b" stroke-width="1"/>
+  <circle cx="250" cy="250" r="200" fill="none" stroke="#1e293b" stroke-width="1"/>
 
-        <circle cx="250" cy="250" r="10" fill="#f9cbd2" stroke="#ff7b72" stroke-width="2" />
+  <circle cx="250" cy="250" r="6" fill="#e2e8f0"/>
 
-        <g id="node-mercury">
-            <circle cx="0" cy="0" r="5" fill="#8b949e" />
-            <line x1="0" y1="0" x2="0" y2="-10" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow)" />
-        </g>
+  <g id="inner">
+    <circle r="6" fill="#38bdf8"/>
+    <line x1="0" y1="0" x2="0" y2="-12" stroke="#38bdf8" stroke-width="1.5"/>
+  </g>
 
-        <g id="node-venus">
-            <circle cx="0" cy="0" r="8" fill="#f0883e" />
-            <line x1="0" y1="0" x2="0" y2="-14" stroke="#ff7b72" stroke-width="1.5" />
-        </g>
+  <g id="middle">
+    <circle r="8" fill="#f97316"/>
+    <line x1="0" y1="0" x2="0" y2="-16" stroke="#f97316" stroke-width="1.5"/>
+  </g>
 
-        <g id="node-earth">
-            <circle cx="0" cy="0" r="8.5" fill="#58a6ff" />
-            <line x1="0" y1="0" x2="0" y2="-15" stroke="#58a6ff" stroke-width="1.5" />
-        </g>
-    </svg>
-</div>
+  <g id="outer">
+    <circle r="6" fill="#22c55e"/>
+    <line x1="0" y1="0" x2="0" y2="-12" stroke="#22c55e" stroke-width="1.5"/>
+  </g>
+</svg>
 
-<div id="telemetry-panel">
-    <div class="grid-header">Kinematic Telemetry & Invariant Execution Space</div>
-    <div class="metrics-grid">
-        <div class="metric-item"><span>Parameter Invariant Vector (ψ):</span> <span class="metric-value">[1.0, 1.625, 0.1667, 48]</span></div>
-        <div class="metric-item"><span>State Space Vector (σ):</span> <span class="metric-value">[+1, +1, -1]</span></div>
-        <div class="metric-item"><span>Derived Synodic Period (S):</span> <span class="metric-value">1.60000 (8/5)</span></div>
-        <div class="metric-item"><span>Phase Sector Subdivisions (Φ):</span> <span class="metric-value">10 (Integer Segment)</span></div>
-        <div class="metric-item"><span>Temporal Segment Interval (T_seg):</span> <span class="metric-value">292.20500 Days</span></div>
-        <div class="metric-item"><span>Venusian Spin Period (P_Vspin):</span> <span class="metric-value">243.50417 Days</span></div>
-        <div class="metric-item"><span>Boundary Velocity Shear (Σ VΔ):</span> <span class="metric-value">2 + (-2) = 0.00000</span></div>
-        <div class="metric-item"><span>Numerical Frame Counter (t):</span> <span class="metric-value" id="t-val">0</span></div>
-    </div>
+<div id="panel">
+  <div><span class="tier-tag">Λ⁰ Foundational:</span> $\psi = [1.0,\; 13/8,\; 1/6,\; 48]$, $\sigma = [+1,\,-1,\,+1]$</div>
+  <div><span class="tier-tag">Λ¹ Constructive:</span> $S = 8/5 = 1.6$, $\Phi = 10$</div>
+  <div><span class="tier-tag">Λ² Relational:</span> $\sum V_{\Delta} = 2 + (-2) = 0$ (Absolute Shear Closure)</div>
+  <div><span class="tier-tag">Λ³ Operational:</span> Deterministic Frame Index $t$: <span id="t" style="color: #34d399; font-weight: bold;">0</span></div>
 </div>
 
 <script>
-    // 1. AXIOMATIC PARAMETERS REGISTERED FROM SPECIFICATION V1.0
-    const PSI_1 = 1.0;                  // System Temporal Baseline
-    const MU = 13.0 / 8.0;              // Proportional Frequency Ratio
-    const LAMBDA = 1.0 / 6.0;           // Hexagonal Boundary Limit Operator
-    
-    const SIGMA_M = 1;                  // Mercury Orientation State
-    const SIGMA_E = 1;                  // Earth Orientation State
-    const SIGMA_V = -1;                 // Venus Orientation State (Retrograde)
+/* ========================================================================
+   Λ⁰ TIER: FOUNDATIONAL CONSTRAINTS (IMMUTABLE VALUE VECTOR)
+   ======================================================================== */
+const psi1 = 1.0;
+const mu = 13/8;  // Rational frequency parameter
+const lambda = 1/6;
 
-    // 2. DERIVED PARAMETRIC GEOMETRIC CHAIN
-    const S = 1.0 / ((1.0 / (PSI_1 * (1.0 / MU))) - (1.0 / PSI_1)); // 8/5 = 1.6
-    const PHI = (8.0 / S) * 2.0;                                    // 10 Segments
-    
-    const D_BASE = 8.0 * 365.25625;
-    const T_SEGMENT = D_BASE / PHI;                                 // 292.205
-    const P_V_SPIN = T_SEGMENT * (1.0 - LAMBDA);                    // 243.504166...
+const sigma_inner = 1;
+const sigma_middle = -1; // Negative polarity forced by rolling interface contract
+const sigma_outer = 1;
 
-    // Classical Ephemeris Orbital Ratios Mapped via Parametric Configuration
-    const P_E_ORBIT = 365.25625;
+/* ========================================================================
+   Λ¹ TIER: CONSTRUCTIVE AXIOMS (DERIVED INVARIANT RELATIONSHIPS)
+   ======================================================================== */
+const S = 1 / ((1 / (psi1 * (1 / mu))) - (1 / psi1)); // Evaluates exactly to 1.6 (8/5)
+const Phi = (8 / S) * 2;                             // Evaluates exactly to 10
+
+const P_outer = 365.25625;
+const P_inner = P_outer / mu;
+const P_middle = (P_inner + P_outer) / 2;
+
+const BASE = 8 * 365.25625;
+const Tseg = BASE / Phi;
+const Pspin = Tseg * (1 - lambda);
+
+/* Execution Layout Constants */
+const C = 250;
+const R = { inner: 80, middle: 140, outer: 200 };
+
+let t = 0;
+
+/* ========================================================================
+   Λ³ TIER: GLOBAL PROPERTIES & KINEMATIC AFFINE TRANSFORMATION LOOP
+   ======================================================================== */
+function frame() {
+  t++;
+
+  // Visual frame-rate embedding constant (strictly decoupled from Λ⁰ physics)
+  const k = 0.2; 
+
+  // Direct, closed-form coordinates mapping from independent variable t
+  const theta_i = (360 / P_inner) * (k * t);
+  const theta_m = (360 / P_middle) * (k * t);
+  const theta_o = (360 / P_outer) * (k * t);
+
+  const theta_i_sp = sigma_inner * (360 / 60) * (k * t);
+  const theta_m_sp = sigma_middle * (360 / Pspin) * (k * t);
+  const theta_o_sp = sigma_outer * (360 / 60) * (k * t);
+
+  const inner = document.getElementById("inner");
+  const middle = document.getElementById("middle");
+  const outer = document.getElementById("outer");
+
+  // Commute absolute positions directly into spatial matrix attributes
+  inner.setAttribute("transform",
+    `translate(${C + R.inner * Math.sin(theta_i * Math.PI / 180)},
+               ${C - R.inner * Math.cos(theta_i * Math.PI / 180)})
+     rotate(${theta_i_sp})`
+  );
+
+  middle.setAttribute("transform",
+    `translate(${C + R.middle * Math.sin(theta_m * Math.PI / 180)},
+               ${C - R.middle * Math.cos(theta_m * Math.PI / 180)})
+     rotate(${theta_m_sp})`
+  );
+
+  outer.setAttribute("transform",
+    `translate(${C + R.outer * Math.sin(theta_o * Math.PI / 180)},
+               ${C - R.outer * Math.cos(theta_o * Math.PI / 180)})
+     rotate(${theta_o_sp})`
+  );
+
+  document.getElementById("t").textContent = t;
+
+  requestAnimationFrame(frame);
+}
+
+// Initiate deterministic frame execution
+requestAnimationFrame(frame);
+</script>
+
+</body>
+</html>
